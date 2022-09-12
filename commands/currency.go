@@ -109,13 +109,13 @@ func (c *currency) toward(s, from, to string) error {
 	return nil
 }
 
-func (c *currency) exec() error {
+func (c *currency) general(args []string) error {
 	c.prepare()
 	if len(c.rates) < 1 {
 		return errors.New("can not get currency rates")
 	}
 
-	arg := strings.TrimSpace(c.wf.Args()[1])
+	arg := strings.TrimSpace(args[0])
 	if arg == "" {
 		return errors.New("invalid argument")
 	}
@@ -127,4 +127,8 @@ func (c *currency) exec() error {
 		return c.toward(m[1], strings.ToUpper(m[2]), "CNY")
 	}
 	return c.toward(arg, "", "CNY")
+}
+
+func (c *currency) universal(act string, args []string) (string, error) {
+	return "", errors.New("unsupported action")
 }

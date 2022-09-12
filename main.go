@@ -8,7 +8,7 @@ import (
 var wf *aw.Workflow
 
 func run() {
-	if err := commands.Handle(wf, wf.Args()[0]); err != nil {
+	if err := commands.Handle(wf, wf.Args()); err != nil {
 		panic(err)
 	}
 }

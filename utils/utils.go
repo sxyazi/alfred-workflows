@@ -16,6 +16,14 @@ import (
 	"time"
 )
 
+func Ptr[T any](v T) *T {
+	return &v
+}
+
+func Value[T any](first T, args ...any) T {
+	return first
+}
+
 func StrMd5(s string) string {
 	hash := md5.Sum([]byte(s))
 	return hex.EncodeToString(hash[:])
@@ -99,4 +107,56 @@ func HttpPost(u string, d io.Reader) ([]byte, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	return body, err
+}
+
+var dateFormats = []string{
+	time.Layout,
+	time.ANSIC,
+	time.UnixDate,
+	time.RubyDate,
+	time.RFC822,
+	time.RFC822Z,
+	time.RFC850,
+	time.RFC1123,
+	time.RFC1123Z,
+	time.RFC3339,
+	time.RFC3339Nano,
+	time.Kitchen,
+	time.Stamp,
+	time.StampMilli,
+	time.StampMicro,
+	time.StampNano,
+
+	"2006-01-02 15:04",
+	"2006-01-02 15:04:05",
+	"2006/01/02 15:04",
+	"2006/01/02 15:04:05",
+
+	"06-1-2",
+	"2006-1-2",
+	"2006-01-02",
+
+	"06/1/2",
+	"2006/1/2",
+	"2006/01/02",
+
+	"15:4:5",
+	"15:04:05",
+}
+
+func ParseTime(s string) *time.Time {
+	if n, err := strconv.ParseInt(s, 10, 64); err == nil && n > 0 {
+		if len(s) == 10 {
+			return Ptr(time.Unix(n, 0))
+		} else if len(s) == 13 {
+			return Ptr(time.UnixMilli(n))
+		}
+	}
+
+	for _, f := range dateFormats {
+		if t, err := time.Parse(f, s); err == nil {
+			return &t
+		}
+	}
+	return nil
 }
