@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	aw "github.com/deanishe/awgo"
+	"net/url"
 	"sync"
 )
 
@@ -13,15 +14,25 @@ type encode struct {
 
 func (e *encode) general(args []string) error {
 	wg := sync.WaitGroup{}
-	wg.Add(1)
+	wg.Add(2)
 
-	var b64 string
+	var query, b64 string
+	go func() {
+		defer wg.Done()
+		query = url.QueryEscape(args[0])
+	}()
 	go func() {
 		defer wg.Done()
 		b64 = base64.StdEncoding.EncodeToString([]byte(args[0]))
 	}()
 
 	wg.Wait()
+	e.wf.
+		NewItem("URL").
+		Subtitle(query).
+		Arg(query).
+		Valid(true).
+		Icon(&aw.Icon{Value: e.wf.Dir() + "/static/link.png"})
 	e.wf.
 		NewItem("Base64").
 		Subtitle(b64).
@@ -35,6 +46,8 @@ func (e *encode) general(args []string) error {
 
 func (e *encode) universal(act string, args []string) (string, error) {
 	switch act {
+	case "url":
+		return url.QueryEscape(args[0]), nil
 	case "base64":
 		return base64.StdEncoding.EncodeToString([]byte(args[0])), nil
 	}

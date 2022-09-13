@@ -5,6 +5,7 @@ import (
 	"errors"
 	aw "github.com/deanishe/awgo"
 	"github.com/sxyazi/alfred-workflows/utils"
+	"net/url"
 	"sync"
 )
 
@@ -14,15 +15,27 @@ type decode struct {
 
 func (d *decode) general(args []string) error {
 	wg := sync.WaitGroup{}
-	wg.Add(1)
+	wg.Add(2)
 
-	var b64 string
+	var query, b64 string
+	go func() {
+		defer wg.Done()
+		b64 = utils.Value(url.QueryUnescape(args[0]))
+	}()
 	go func() {
 		defer wg.Done()
 		b64 = string(utils.Value(base64.StdEncoding.DecodeString(args[0])))
 	}()
 
 	wg.Wait()
+	if query != "" {
+		d.wf.
+			NewItem("URL").
+			Subtitle(query).
+			Arg(query).
+			Valid(true).
+			Icon(&aw.Icon{Value: d.wf.Dir() + "/static/link.png"})
+	}
 	if b64 != "" {
 		d.wf.
 			NewItem("Base64").
@@ -38,6 +51,8 @@ func (d *decode) general(args []string) error {
 
 func (d *decode) universal(act string, args []string) (string, error) {
 	switch act {
+	case "url":
+		return url.QueryUnescape(args[0])
 	case "base64":
 		return string(utils.Value(base64.StdEncoding.DecodeString(args[0]))), nil
 	}
